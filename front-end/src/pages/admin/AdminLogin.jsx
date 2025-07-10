@@ -1,46 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
 import { login } from '../../store/slices/authSlice';
 import { Store, Eye, EyeOff } from 'lucide-react';
+import { useLogin } from '../../hooks/useLogin';
 
 const AdminLogin = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { login, isLoading, isError, error, data } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    phone: '',
     password: '',
   });
 
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    login(formData);
+    console.log('data', data);
     
-    // Simple authentication (in real app, this would be handled by backend)
-    if (formData.username === 'admin' && formData.password === 'admin123') {
-      dispatch(login({
-        id: '1',
-        username: formData.username,
-        role: 'admin',
-      }));
-      navigate('/admin');
-    } else {
-      alert('اسم المستخدم أو كلمة المرور غير صحيحة');
-    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center px-2">
+    <div className="min-h-screen bg-gradient-to-br from-[#5ab8ee] via-[#5ab8ee] to-[#5ab8ee] flex items-center justify-center px-2">
       <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-8 w-full max-w-xs sm:max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Store className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
+            <Store className="h-10 w-10 sm:h-12 sm:w-12 text-[#5ab8ee]" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">لوحة التحكم</h1>
-          <p className="text-xs sm:text-base text-gray-600">مرحباً بك في نظام إدارة مارسيليا ستايل</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">لوحة الإدارة</h1>
+          <p className="text-xs sm:text-base text-gray-600">مرحبا بك ف إدارة مارسيليا ستايل</p>
         </div>
+
+        {/* Error message */}
+        {isError && (
+          <div className="mb-4 text-center text-red-600 font-bold bg-red-50 py-2 rounded-lg">
+            اسم المستخدم أو كلمة المرور غير صحيحة
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -48,19 +48,19 @@ const AdminLogin = () => {
               اسم المستخدم
             </label>
             <input
-              id="username"
+              id="phone"
               type="text"
               required
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="أدخل اسم المستخدم"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ab8ee] focus:border-transparent"
+              placeholder="دخل اسم المستخدم"
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              كلمة المرور
+              كلمة السر
             </label>
             <div className="relative">
               <input
@@ -69,8 +69,8 @@ const AdminLogin = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="أدخل كلمة المرور"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ab8ee] focus:border-transparent"
+                placeholder="دخل كلمة السر"
               />
               <button
                 type="button"
@@ -84,29 +84,21 @@ const AdminLogin = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+            className="w-full bg-[#5ab8ee] text-white py-3 rounded-lg hover:bg-[#4aa3d9] transition-colors duration-200 font-medium"
           >
-            تسجيل الدخول
+            {isLoading ? 'كايشحن...' : 'دخول'}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            للعودة إلى الموقع الرئيسي،{' '}
+            باش ترجع للموقع الرئيسي،{' '}
             <button
               onClick={() => navigate('/')}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-[#5ab8ee] hover:text-[#4aa3d9] font-medium"
             >
-              اضغط هنا
+              كليك هنا
             </button>
-          </p>
-        </div>
-
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600 text-center">
-            <strong>بيانات الدخول التجريبية:</strong><br />
-            اسم المستخدم: admin<br />
-            كلمة المرور: admin123
           </p>
         </div>
       </div>

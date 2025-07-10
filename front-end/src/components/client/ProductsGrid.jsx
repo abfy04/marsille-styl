@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { addToCart } from '../../store/slices/cartSlice';
 import { ShoppingCart, Eye, Star, Tag } from 'lucide-react';
@@ -8,7 +7,6 @@ import { ShoppingCart, Eye, Star, Tag } from 'lucide-react';
 const ProductsGrid = ({ products, isLoading }) => {
   const [page, setPage] = useState(1);
   const pageSize = 8;
-  const { t } = useTranslation();
 
   // Pagination
   const totalPages = Math.ceil((products?.length || 0) / pageSize) || 1;
@@ -18,18 +16,18 @@ const ProductsGrid = ({ products, isLoading }) => {
     // Implement add to cart logic here if needed
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!products || products.length === 0) return <div className="text-center py-12"><p className="text-gray-500 text-lg">لا توجد منتجات متاحة</p></div>;
+  if (isLoading) return <div>كايشحن...</div>;
+  if (!products || products.length === 0) return <div className="text-center py-12"><p className="text-gray-500 text-lg">ما كاينينش البرودويات</p></div>;
 
   return (
     <section className="py-16 bg-gray-50" id="products">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {t('products.title')}
+            البرودويات
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            اكتشف منتجاتنا المميزة والحصرية
+            اكتاشف البرودويات ديالنا المزيانين و الحصريين
           </p>
         </div>
 
@@ -46,7 +44,7 @@ const ProductsGrid = ({ products, isLoading }) => {
                 {product.is_offered && (
                   <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
                     <Tag className="h-3 w-3 mr-1" />
-                    {t('products.offer')}
+                    برومو
                   </div>
                 )}
                 {/* Hover Actions */}
@@ -74,10 +72,10 @@ const ProductsGrid = ({ products, isLoading }) => {
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     {product.is_offered ? (
                       <>
-                        <span className="text-2xl font-bold text-blue-600">
+                        <span className="text-2xl font-bold text-yellow-400">
                           {product.offered_price} د.م
                         </span>
-                        <span className="text-gray-400 line-through text-sm">
+                        <span className="text-red-400 line-through text-sm">
                           {product.price} د.م
                         </span>
                       </>
@@ -87,13 +85,7 @@ const ProductsGrid = ({ products, isLoading }) => {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center text-yellow-400">
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4" />
-                  </div>
+
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={`text-sm px-2 py-1 rounded-full ${
@@ -101,14 +93,14 @@ const ProductsGrid = ({ products, isLoading }) => {
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {product.quantity > 0 ? `متوفر (${product.quantity})` : t('products.outOfStock')}
+                    {product.quantity > 0 ? `كاين (${product.quantity})` : 'سالا الستوك'}
                   </span>
                   <button
                     onClick={() => handleAddToCart(product)}
                     disabled={product.quantity === 0}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    className="bg-[#5ab8ee] text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
-                    {t('products.addToCart')}
+                    زيد للسلة
                   </button>
                 </div>
               </div>
@@ -123,7 +115,7 @@ const ProductsGrid = ({ products, isLoading }) => {
               disabled={page === 1}
               className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
             >
-              Previous
+              اللور
             </button>
             {[...Array(totalPages)].map((_, idx) => (
               <button
@@ -139,7 +131,7 @@ const ProductsGrid = ({ products, isLoading }) => {
               disabled={page === totalPages}
               className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
             >
-              Next
+              القدام
             </button>
           </div>
         )}

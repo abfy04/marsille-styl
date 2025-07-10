@@ -35,6 +35,7 @@ const HomePage = () => {
 
   return (
     <>
+      <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <HeroSection products={products} isLoading={productsLoading} />
       <CategoriesSlider
         categories={categoriesWithAll}

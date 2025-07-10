@@ -13,25 +13,15 @@ const HeroSection= () => {
   const isRTL = i18n.language === 'ar';
 
   return (
-    <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white">
+    <section className="relative bg-gradient-to-br bg-[#5ab8ee] text-white">
       <div className="absolute inset-0 bg-black opacity-20"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            {t('hero.title')}
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">
-            {t('hero.subtitle')}
-          </p>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105">
-            {t('hero.cta')}
-          </button>
-        </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        
 
         {/* Offered Products */}
         {offeredProducts.length > 0 && (
-          <div className="mt-16">
+          <div className="mt-1">
             <h2 className="text-2xl font-bold mb-8 text-center">
               <Star className="inline-block h-6 w-6 ml-2 text-yellow-400" />
               العروض الخاصة

@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useProducts } from '../../hooks/useProducts';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../store/slices/cartSlice';
@@ -9,7 +8,6 @@ import { ArrowLeft, ArrowRight, ShoppingCart, Star, Heart, Share2 } from 'lucide
 const ProductDetailPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const { data: products, isLoading } = useProducts();
 
@@ -23,22 +21,20 @@ const ProductDetailPage = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
 
-  const isRTL = i18n.language === 'ar';
-
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">كايشحن...</div>;
   }
 
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">المنتج غير موجود</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">البرودوي ما كاينش</h2>
           <button
             onClick={() => navigate('/')}
             className="bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors duration-200"
           >
-            العودة للرئيسية
+            رجع للرئيسية
           </button>
         </div>
       </div>
@@ -50,7 +46,7 @@ const ProductDetailPage = () => {
       id: product.id,
       product_name: product.product_name,
       price: product.is_offered ? product.offered_price : product.price,
-      stock,
+      stock: product.quantity,
       size: selectedSize,
       color: selectedColor,
       product_img: product.product_img,
@@ -66,8 +62,8 @@ const ProductDetailPage = () => {
             onClick={() => navigate(-1)}
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
           >
-            {isRTL ? <ArrowRight className="h-5 w-5 ml-2" /> : <ArrowLeft className="h-5 w-5 mr-2" />}
-            العودة
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            رجع
           </button>
         </div>
       </div>
@@ -111,7 +107,7 @@ const ProductDetailPage = () => {
                       {product.price} د.م
                     </span>
                     <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
-                      خصم {Math.round(((product.price - product.offered_price) / product.price) * 100)}%
+                      نقص {Math.round(((product.price - product.offered_price) / product.price) * 100)}%
                     </span>
                   </>
                 ) : (
@@ -122,7 +118,7 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="text-gray-600 mb-6">
-                <p>منتج عالي الجودة مصنوع من أفضل المواد. يتميز بتصميم أنيق وعصري يناسب جميع الأذواق.</p>
+                <p>برودوي مزيان و زوين، مصنوع من أحسن المواد و عندو ستيل عصري كيعجب الجميع.</p>
               </div>
             </div>
 
@@ -182,7 +178,7 @@ const ProductDetailPage = () => {
                 </button>
                 <span className="text-lg font-medium px-4">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}
                   className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
                 >
                   +
@@ -198,29 +194,18 @@ const ProductDetailPage = () => {
               <span className={`text-sm font-medium ${
                 product.quantity > 0 ? 'text-green-700' : 'text-red-700'
               }`}>
-                {product.quantity > 0 ? `متوفر (${product.quantity} قطعة)` : 'نفذ من المخزون'}
+                {product.quantity > 0 ? 'كاين فالستوك' : 'سالا الستوك'}
               </span>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={handleAddToCart}
-                disabled={product.quantity === 0}
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-full hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 rtl:space-x-reverse"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                <span>{t('products.addToCart')}</span>
-              </button>
-              
-              <button className="px-6 py-3 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center">
-                <Heart className="h-5 w-5 text-gray-600" />
-              </button>
-              
-              <button className="px-6 py-3 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center">
-                <Share2 className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
+            {/* Add to Cart */}
+            <button
+              onClick={handleAddToCart}
+              disabled={product.quantity === 0}
+              className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg font-bold"
+            >
+              زيد للسلة
+            </button>
           </div>
         </div>
       </div>

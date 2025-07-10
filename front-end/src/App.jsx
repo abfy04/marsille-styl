@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
-import { useTranslation } from 'react-i18next';
 import './i18n';
 
 // Client Components
@@ -22,15 +21,14 @@ import AddProduct from './pages/admin/AddProduct';
 import EditProduct from './pages/admin/EditProduct';
 import AddCategory from './pages/admin/AddCategory';
 import EditCategory from './pages/admin/EditCategory';
+import ProductOfferPage from './pages/admin/ProductOfferPage';
 
 function App() {
-  const { i18n } = useTranslation();
-
-  // Set RTL for Arabic
+  // Always RTL for Darija
   React.useEffect(() => {
-    document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = i18n.language;
-  }, [i18n.language]);
+    document.dir = 'rtl';
+    document.documentElement.lang = 'ar';
+  }, []);
 
   return (
     <Provider store={store}>
@@ -55,6 +53,7 @@ function App() {
               <Route path="products" element={<AdminProducts />} />
               <Route path="products/add" element={<AddProduct />} />
               <Route path="products/edit/:id" element={<EditProduct />} />
+              <Route path="products/:id/offer" element={<ProductOfferPage />} />
             </Route>
           </Routes>
         </div>

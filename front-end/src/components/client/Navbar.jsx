@@ -1,11 +1,8 @@
-
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { ShoppingCart, Globe, Store } from 'lucide-react';
+import { ShoppingCart, Store } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
 const Navbar = ({ searchQuery, setSearchQuery }) => {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -14,27 +11,26 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
     navigate('/admin/login');
   };
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'ar' ? 'fr' : 'ar';
-    i18n.changeLanguage(newLang);
+  // Scroll to products grid when search changes
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    if (e.target.value) {
+      setTimeout(() => {
+        const el = document.getElementById('products');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
   };
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* First row: cart/lang left, logo right */}
-        <div className="flex justify-between items-center h-16">
-          {/* Left: Cart and Language */}
+        {/* First row: cart/lang left, logo right, search (tablet/desktop) */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0 h-auto md:h-16">
+          {/* Left: Cart */}
           <div className="flex items-center space-x-4 rtl:space-x-reverse order-2 md:order-1">
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-              title={i18n.language === 'ar' ? 'Français' : 'العربية'}
-            >
-              <Globe className="h-5 w-5 text-gray-700" />
-            </button>
-            {/* Cart */}
             <Link to={'/cart'} className="relative p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
               <ShoppingCart className="h-6 w-6 text-gray-700" />
               {cartItemsCount > 0 && (
@@ -43,6 +39,16 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
                 </span>
               )}
             </Link>
+          </div>
+          {/* Center: Search (tablet/desktop only) */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <input
+              type="text"
+              placeholder="ابحث عن منتج..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="border px-3 py-2 rounded-lg w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
+            />
           </div>
           {/* Right: Logo */}
           <Link
@@ -56,14 +62,14 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
             </span>
           </Link>
         </div>
-        {/* Second row: Search bar full width */}
-        <div className="flex w-full justify-center py-2">
+        {/* Second row: Search bar (mobile only) */}
+        <div className="flex w-full justify-center py-2 md:hidden">
           <input
             type="text"
             placeholder="ابحث عن منتج..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="border px-3 py-2 rounded-lg w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
+            onChange={handleSearchChange}
+            className="border px-3 py-2 rounded-lg w-full max-w-xs sm:max-w-sm"
           />
         </div>
       </div>
