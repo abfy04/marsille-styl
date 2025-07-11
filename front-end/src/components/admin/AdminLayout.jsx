@@ -2,15 +2,14 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
 
-import AdminSidebar from './AdminSidebar';
+
 import AdminNavbar from './AdminNavbar';
 
 const AdminLayout= () => {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return <Navigate to="/admin/login" replace />;
+   const data  =JSON.parse(localStorage.getItem('data'))
+;
+  if (!data?.token && data?.user?.role !== 'admin' ) {
+    return <Navigate to="/login" replace />;
   }
 
   return (

@@ -30,6 +30,9 @@ function App() {
     document.documentElement.lang = 'ar';
   }, []);
 
+
+
+
   return (
     <Provider store={store}>
       <Router>
@@ -42,9 +45,12 @@ function App() {
               <Route path="product/:productId" element={<ProductDetailPage />} />
               <Route path="cart" element={<CartPage />} />
             </Route>
+            <Route path="/login" element={<AdminLogin />} />
 
             {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+           
+         
+
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="categories" element={<AdminCategories />} />
@@ -55,6 +61,10 @@ function App() {
               <Route path="products/edit/:id" element={<EditProduct />} />
               <Route path="products/:id/offer" element={<ProductOfferPage />} />
             </Route>
+            
+             
+              
+
           </Routes>
         </div>
       </Router>

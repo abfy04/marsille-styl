@@ -1,56 +1,104 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { addProduct } from '../../store/slices/productsSlice';
+import { useCategories } from '../../hooks/useCategories';
+import { useProducts } from '../../hooks/useProducts';
 
 const SHOES_SIZES = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 const CLOTHES_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
+const COLOR_SWATCHES = [
+  '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FFA500', '#800080', '#FFC0CB', '#A52A2A', '#808080', '#008080', '#FFD700', '#ADD8E6', '#00CED1', '#DC143C', '#B22222', '#228B22', '#FF69B4', '#8B4513', '#2E8B57', '#1E90FF', '#FF6347', '#20B2AA', '#F5DEB3', '#D2691E', '#9ACD32', '#E9967A', '#8FBC8F', '#483D8B'
+];
+
+const errorMessagesDarija = {
+  name: "سمية ضرورية",
+  price: "الثمن ضروري و خاصو يكون رقم",
+  stock: "الستوك ضروري و خاصو يكون رقم",
+  image: "الصورة ضرورية",
+  category_id: "الكاطيݣوري ضرورية",
+  sizes: "اختار القياسات",
+  colors: "دخل الألوان",
+};
+
 const AddProduct = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const categories = useSelector((state) => state.categories.categories);
+  const { categories = [], isLoading: categoriesLoading, isError: categoriesError } = useCategories();
+  const { addProduct, isAdding } = useProducts();
   const [formData, setFormData] = useState({
-    product_name: '',
-    categorie_id: '',
-    sizes: [],
+    name: '',
+    category_id: '',
+    sizes: null,
     colors: '',
     price: '',
-    quantity: '',
-    product_img: '',
+    stock: '',
+    image: null,
   });
   const [imagePreview, setImagePreview] = useState('');
+  const [customColor, setCustomColor] = useState('');
+  const [errors, setErrors] = useState({});
 
-  const selectedCategory = categories.find(cat => String(cat.id) === String(formData.categorie_id));
-  const hasSizes = selectedCategory?.hasSizes;
-  const sizeType = selectedCategory?.sizeType;
-  const sizeOptions = sizeType === 'shoes' ? SHOES_SIZES : sizeType === 'clothes' ? CLOTHES_SIZES : [];
+  const selectedCategory = categories.find(cat => String(cat.id) === String(formData.category_id));
+  let sizeOptions = [];
+  let hasSizes = false;
+  if (selectedCategory) {
+    let parsedSizes = selectedCategory.sizes;
+    if (typeof parsedSizes === 'string') {
+      try {
+        parsedSizes = JSON.parse(parsedSizes);
+      } catch {
+        parsedSizes = [];
+      }
+    }
+    hasSizes = Array.isArray(parsedSizes) && parsedSizes.length > 0;
+    sizeOptions = hasSizes ? parsedSizes : [];
+  }
+
+  const handleCategoryChange = (e) => {
+    const value = e.target.value;
+    const cat = categories.find(cat => String(cat.id) === String(value));
+    let parsedSizes = cat ? cat.sizes : [];
+    if (typeof parsedSizes === 'string') {
+      try {
+        parsedSizes = JSON.parse(parsedSizes);
+      } catch {
+        parsedSizes = [];
+      }
+    }
+    setFormData({
+      ...formData,
+      category_id: value,
+      sizes: Array.isArray(parsedSizes) && parsedSizes.length > 0 ? [] : null,
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const productData = {
-      id: Date.now().toString(),
-      product_name: formData.product_name,
-      categorie_id: formData.categorie_id,
-      sizes: formData.sizes,
-      colors: formData.colors ? formData.colors.split(',').map(c => c.trim()) : [],
-      price: parseFloat(formData.price),
-      quantity: parseInt(formData.quantity),
-      product_img: formData.product_img,
-    };
-    dispatch(addProduct(productData));
-    navigate('/admin/products');
+    setErrors({});
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('price', formData.price);
+    data.append('stock', formData.stock);
+    data.append('sizes', hasSizes ? JSON.stringify(formData.sizes) : null);
+    data.append('colors', JSON.stringify(formData.colors ? formData.colors.split(',').map(c => c.trim()) : []));
+    if (formData.image instanceof File) {
+      data.append('image', formData.image);
+    }
+    data.append('category_id', formData.category_id);
+    addProduct(data, {
+      onSuccess: () => navigate('/admin/products'),
+      onError: (error) => {
+        if (error.response && error.response.data && error.response.data.errors) {
+          setErrors(error.response.data.errors);
+        }
+      },
+    });
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, product_img: reader.result });
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      setFormData({ ...formData, image: file });
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -69,24 +117,28 @@ const AddProduct = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">اسم البرودوي</label>
-            <input type="text" required value={formData.product_name} onChange={e => setFormData({ ...formData, product_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            <input type="text" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            {errors.name && <div className="text-red-600 text-xs mt-1">{errorMessagesDarija.name}</div>}
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">الثمن</label>
             <input type="number" required step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            {errors.price && <div className="text-red-600 text-xs mt-1">{errors.price[0]}</div>}
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">الكاطيݣوري</label>
-            <select required value={formData.categorie_id} onChange={e => setFormData({ ...formData, categorie_id: e.target.value, sizes: [] })} className="w-full px-3 py-2 border rounded-lg">
+            <select required value={formData.category_id} onChange={handleCategoryChange} className="w-full px-3 py-2 border rounded-lg">
               <option value="">اختار كاطيݣوري</option>
               {categories.map(category => (
-                <option key={category.id} value={category.id}>{category.categorie_name}</option>
+                <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </select>
+            {errors.category_id && <div className="text-red-600 text-xs mt-1">{errorMessagesDarija.category_id}</div>}
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">الستوك</label>
-            <input type="number" required value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            <input type="number" required value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            {errors.stock && <div className="text-red-600 text-xs mt-1">{errorMessagesDarija.stock}</div>}
           </div>
         </div>
         {hasSizes && (
@@ -94,21 +146,23 @@ const AddProduct = () => {
             <label className="block text-sm font-medium mb-2">اختار القياسات</label>
             <div className="flex flex-wrap gap-2">
               {sizeOptions.map(size => (
-                <button
-                  type="button"
-                  key={size}
-                  onClick={() => handleSizeToggle(size)}
-                  className={`px-4 py-2 border rounded-lg transition-colors duration-200 ${formData.sizes.includes(size) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
-                >
-                  {size}
-                </button>
+                <label key={size} className="flex items-center gap-2 cursor-pointer border px-3 py-2 rounded-lg">
+                  <input
+                    type="checkbox"
+                    checked={formData.sizes && formData.sizes.includes(size)}
+                    onChange={() => handleSizeToggle(size)}
+                  />
+                  <span>{size}</span>
+                </label>
               ))}
             </div>
+            {errors.sizes && <div className="text-red-600 text-xs mt-1">{errorMessagesDarija.sizes}</div>}
           </div>
         )}
         <div>
           <label className="block text-sm font-medium mb-2">الألوان (فاصلهم بفاصلة)</label>
           <input type="text" value={formData.colors} onChange={e => setFormData({ ...formData, colors: e.target.value })} className="w-full px-3 py-2 border rounded-lg" placeholder="أحمر, أزرق, أخضر" />
+          {errors.colors && <div className="text-red-600 text-xs mt-1">{errorMessagesDarija.colors}</div>}
         </div>
         <div>
           <label className="block text-sm font-medium mb-2">صورة البرودوي</label>
@@ -121,6 +175,7 @@ const AddProduct = () => {
               <img src={imagePreview} alt="preview" className="h-16 w-16 object-cover rounded-lg border" />
             )}
           </div>
+          {errors.image && <div className="text-red-600 text-xs mt-1">{errorMessagesDarija.image}</div>}
         </div>
         <div className="flex space-x-3 rtl:space-x-reverse">
           <button type="submit" className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">زيد</button>

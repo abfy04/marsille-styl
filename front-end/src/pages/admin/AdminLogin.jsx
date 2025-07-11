@@ -1,26 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { login } from '../../store/slices/authSlice';
 import { Store, Eye, EyeOff } from 'lucide-react';
-import { useLogin } from '../../hooks/useLogin';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { checkUserLogin } from '../../hooks/checkUserLogin';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { login, isLoading, isError, error, data } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     phone: '',
     password: '',
   });
+  const queryClient = useQueryClient();
+ 
 
+  const mutation = useMutation({
+    mutationFn: (formData) => checkUserLogin(formData),
+    onSuccess: (data) => {
+    
+      queryClient.setQueryData(['user'], data.user);
+      console.log(data)
+      
+  
+        localStorage.setItem('data',JSON.stringify(data));
+        navigate('/admin');
 
-
-  const handleSubmit = (e) => {
+      
+    },
+   
+    onError: () => {
+      setError( 'فشل تسجيل الدخول. يرجى التحقق من البيانات');
+    },
+  });
+   
+  function  handleSubmit  (e) {
     e.preventDefault();
-    login(formData);
-    console.log('data', data);
+   
+    setError(null)
+    setIsLoading(true)
+    mutation.mutate(formData);
+    setIsLoading(false);
+    
+
+
     
   };
 
@@ -36,7 +60,7 @@ const AdminLogin = () => {
         </div>
 
         {/* Error message */}
-        {isError && (
+        {error && (
           <div className="mb-4 text-center text-red-600 font-bold bg-red-50 py-2 rounded-lg">
             اسم المستخدم أو كلمة المرور غير صحيحة
           </div>

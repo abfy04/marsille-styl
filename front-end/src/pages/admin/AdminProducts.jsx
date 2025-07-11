@@ -1,25 +1,39 @@
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { addProduct, updateProduct, deleteProduct } from '../../store/slices/productsSlice';
-import { Plus, Edit2, Trash2, Tag, Filter, Search } from 'lucide-react';
+import { useCategories } from '../../hooks/useCategories';
+import { useProducts } from '../../hooks/useProducts';
+import { Plus, Edit2, Trash2, Tag, Filter, Search, Eye, EyeOff } from 'lucide-react';
 
 const AdminProducts = () => {
-  const dispatch = useDispatch();
-  const products = useSelector((state) => state.products.products);
-  const categories = useSelector((state) => state.categories.categories);
   const navigate = useNavigate();
+  const { categories = [], isLoading: categoriesLoading, isError: categoriesError } = useCategories();
+  const { products = [], isLoading: productsLoading, isError: productsError, deleteProduct, isDeleting, updateProduct } = useProducts();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [offeredFilter, setOfferedFilter] = useState('all');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState(null);
+  const [toggleProductId, setToggleProductId] = useState(null);
 
-  const handleDelete = (id) => {
-    if (window.confirm('واش متأكد بغيتي تحيد هاد البرودوي؟')) {
-      dispatch(deleteProduct(id));
-    }
+  const handleDeleteClick = (id) => {
+    setToDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    deleteProduct(toDeleteId);
+    setShowDeleteModal(false);
+  };
+
+  const handleToggleShow = (product) => {
+    setToggleProductId(product.id);
+    // You should implement updateProduct mutation in useProducts
+    // Here we just toggle isShow and call updateProduct
+    updateProduct({ id: product.id, updatedProduct: { ...product, isShow: !product.isShow } });
+    setTimeout(() => setToggleProductId(null), 500);
   };
 
   const getCategoryName = (categoryId) => {
@@ -28,7 +42,7 @@ const AdminProducts = () => {
   };
 
   // Filtering logic
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = (products || []).filter((p) => {
     const matchesSearch = p.product_name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === '' || p.categorie_id === categoryFilter;
     const matchesOffered =
@@ -169,182 +183,188 @@ const AdminProducts = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 hidden md:table-header-group">
               <tr>
-                <th className="px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  البرودوي
-                </th>
-                <th className="hidden sm:table-cell px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  الكاطيݣوري
-                </th>
-                <th className="px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  الثمن
-                </th>
-                <th className="hidden sm:table-cell px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  الستوك
-                </th>
-                <th className="hidden md:table-cell px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  الحالة
-                </th>
-                <th className="px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  الإجراءات
-                </th>
-                <th className="px-2 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  البرومو
-                </th>
+                <th className="px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">البرودوي</th>
+                <th className="hidden sm:table-cell px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">الكاطيݣوري</th>
+                <th className="px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">الثمن</th>
+                <th className="hidden sm:table-cell px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">الستوك</th>
+                <th className="hidden md:table-cell px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">الحالة</th>
+                <th className="px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">إظهار</th>
+                <th className="px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">الإجراءات</th>
+                <th className="px-4 md:px-8 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">البرومو</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProducts.map((product) => (
-                <React.Fragment key={product.id}>
-                  {/* Desktop/tablet row */}
-                  <tr className="hidden md:table-row hover:bg-gray-50">
-                    <td className="px-2 md:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <img
-                          src={product.product_img}
-                          alt={product.product_name}
-                          className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover"
-                        />
-                        <div className="mr-2 md:mr-4">
-                          <div className="text-xs md:text-sm font-medium text-gray-900">
-                            {product.product_name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {product.sizes.length > 0 && `القياسات: ${product.sizes.join(', ')}`}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-2 md:px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                        {getCategoryName(product.categorie_id)}
-                      </span>
-                    </td>
-                    <td className="px-2 md:px-6 py-4 whitespace-nowrap">
-                      <div className="text-xs md:text-sm text-gray-900">
-                        {product.is_offered ? (
+              {filteredProducts.length === 0 ? (
+                <tr className="hidden md:table-row">
+                  <td colSpan={8} className="text-center py-12 text-gray-400 text-lg font-bold">ما كاين حتى برودوي</td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => (
+                  <React.Fragment key={product.id}>
+                    {/* Desktop/tablet row */}
+                    <tr className="hidden md:table-row hover:bg-blue-50 transition-colors group">
+                      <td className="px-4 md:px-8 py-5 whitespace-nowrap align-middle">
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={product.product_img}
+                            alt={product.product_name}
+                            className="h-14 w-14 rounded-lg object-cover border border-gray-200 shadow-sm group-hover:scale-105 transition-transform"
+                          />
                           <div>
-                            <span className="font-bold text-red-600">{product.offered_price} د.م</span>
-                            <span className="text-gray-400 line-through ml-2">{product.price} د.م</span>
-                          </div>
-                        ) : (
-                          <span className="font-bold">{product.price} د.م</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-2 md:px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        product.quantity > 10 
-                          ? 'bg-green-100 text-green-800' 
-                          : product.quantity > 0 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.quantity}
-                      </span>
-                    </td>
-                    <td className="hidden md:table-cell px-2 md:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        {product.is_offered && (
-                          <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                            برومو
-                          </span>
-                        )}
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          product.quantity > 0 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {product.quantity > 0 ? 'كاين' : 'سالا'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 md:px-6 py-4 whitespace-nowrap text-xs md:text-sm font-medium">
-                      <div className="flex flex-col md:flex-row items-start md:items-center space-y-1 md:space-y-0 md:space-x-2 rtl:space-x-reverse">
-                        <button
-                          onClick={() => navigate(`/admin/products/edit/${product.id}`)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors duration-200 flex items-center gap-1"
-                        >
-                          <Edit2 className="h-4 w-4" /> <span className="hidden sm:inline">بدل</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="text-red-600 hover:text-red-900 transition-colors duration-200 flex items-center gap-1"
-                        >
-                          <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">حيد</span>
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-2 md:px-6 py-4 whitespace-nowrap text-xs md:text-sm font-medium">
-                      {!product.is_offered ? (
-                        <button
-                          onClick={() => navigate(`/admin/products/${product.id}/offer`)}
-                          className="text-green-600 hover:text-green-900 transition-colors duration-200 flex items-center gap-1"
-                        >
-                          <Tag className="h-4 w-4" /> <span className="hidden sm:inline">زيد برومو</span>
-                        </button>
-                      ) : (
-                        <div className="flex flex-col gap-1">
-                          <button
-                            onClick={() => navigate(`/admin/products/${product.id}/offer`)}
-                            className="text-yellow-600 hover:text-yellow-900 transition-colors duration-200 flex items-center gap-1"
-                          >
-                            <Tag className="h-4 w-4" /> <span className="hidden sm:inline">بدل البرومو</span>
-                          </button>
-                          <button
-                            onClick={() => navigate(`/admin/products/${product.id}/offer?delete=1`)}
-                            className="text-red-600 hover:text-red-900 transition-colors duration-200 flex items-center gap-1"
-                          >
-                            <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">حيد البرومو</span>
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  {/* Mobile card row */}
-                  <tr className="md:hidden">
-                    <td colSpan={7} className="p-0 border-0">
-                      <div className="bg-white rounded-lg shadow mb-4 p-4 flex flex-col gap-2">
-                        <div className="flex items-center gap-3">
-                          <img src={product.product_img} alt={product.product_name} className="h-12 w-12 rounded-lg object-cover" />
-                          <div>
-                            <div className="font-bold">{product.product_name}</div>
+                            <div className="text-base font-bold text-gray-900">{product.product_name}</div>
                             <div className="text-xs text-gray-500">{product.sizes.length > 0 && `القياسات: ${product.sizes.join(', ')}`}</div>
                           </div>
                         </div>
-                        <div><span className="font-bold">الكاطيݣوري:</span> {getCategoryName(product.categorie_id)}</div>
-                        <div>
-                          <span className="font-bold">الثمن:</span>{' '}
+                      </td>
+                      <td className="hidden sm:table-cell px-4 md:px-8 py-5 whitespace-nowrap align-middle">
+                        <span className="px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-full border border-blue-100">{getCategoryName(product.categorie_id)}</span>
+                      </td>
+                      <td className="px-4 md:px-8 py-5 whitespace-nowrap align-middle">
+                        <div className="text-base text-gray-900">
                           {product.is_offered ? (
-                            <>
-                              <span className="text-red-600 font-bold">{product.offered_price} د.م</span>
+                            <div>
+                              <span className="font-bold text-red-600">{product.offered_price} د.م</span>
                               <span className="text-gray-400 line-through ml-2">{product.price} د.م</span>
-                            </>
+                            </div>
                           ) : (
-                            <span>{product.price} د.م</span>
+                            <span className="font-bold">{product.price} د.م</span>
                           )}
                         </div>
-                        <div><span className="font-bold">الستوك:</span> {product.quantity}</div>
-                        <div className="flex gap-2 flex-wrap mt-2">
-                          <button onClick={() => navigate(`/admin/products/edit/${product.id}`)} className="flex-1 flex items-center justify-center gap-1 bg-blue-100 text-blue-700 rounded-lg py-2 px-2 text-sm font-medium"><Edit2 className="h-4 w-4" /> بدل</button>
-                          <button onClick={() => handleDelete(product.id)} className="flex-1 flex items-center justify-center gap-1 bg-red-100 text-red-700 rounded-lg py-2 px-2 text-sm font-medium"><Trash2 className="h-4 w-4" /> حيد</button>
-                          {!product.is_offered ? (
-                            <button onClick={() => navigate(`/admin/products/${product.id}/offer`)} className="flex-1 flex items-center justify-center gap-1 bg-green-100 text-green-700 rounded-lg py-2 px-2 text-sm font-medium"><Tag className="h-4 w-4" /> زيد برومو</button>
-                          ) : (
-                            <>
-                              <button onClick={() => navigate(`/admin/products/${product.id}/offer`)} className="flex-1 flex items-center justify-center gap-1 bg-yellow-100 text-yellow-700 rounded-lg py-2 px-2 text-sm font-medium"><Tag className="h-4 w-4" /> بدل البرومو</button>
-                              <button onClick={() => navigate(`/admin/products/${product.id}/offer?delete=1`)} className="flex-1 flex items-center justify-center gap-1 bg-red-200 text-red-800 rounded-lg py-2 px-2 text-sm font-medium"><Trash2 className="h-4 w-4" /> حيد البرومو</button>
-                            </>
+                      </td>
+                      <td className="hidden sm:table-cell px-4 md:px-8 py-5 whitespace-nowrap align-middle">
+                        <span className={`px-3 py-1 text-xs font-bold rounded-full ${product.quantity > 10 ? 'bg-green-100 text-green-800' : product.quantity > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{product.quantity}</span>
+                      </td>
+                      <td className="hidden md:table-cell px-4 md:px-8 py-5 whitespace-nowrap align-middle">
+                        <div className="flex items-center gap-2">
+                          {product.is_offered && (
+                            <span className="px-3 py-1 text-xs font-bold bg-red-100 text-red-800 rounded-full">برومو</span>
                           )}
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${product.quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{product.quantity > 0 ? 'كاين' : 'سالا'}</span>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                </React.Fragment>
-              ))}
+                      </td>
+                      <td className="px-4 md:px-8 py-5 whitespace-nowrap align-middle text-center">
+                        <button
+                          onClick={() => handleToggleShow(product)}
+                          className={`p-2 rounded-full border ${product.isShow ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'} hover:bg-green-200 hover:text-green-900 transition`}
+                          disabled={toggleProductId === product.id}
+                          title={product.isShow ? 'إخفاء' : 'إظهار'}
+                        >
+                          {product.isShow ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                        </button>
+                      </td>
+                      <td className="px-4 md:px-8 py-5 whitespace-nowrap align-middle text-xs md:text-sm font-medium">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/admin/products/edit/${product.id}`)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors duration-200 flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-blue-100"
+                          >
+                            <Edit2 className="h-4 w-4" /> <span className="hidden sm:inline">بدل</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(product.id)}
+                            className="text-red-600 hover:text-red-900 transition-colors duration-200 flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-red-100"
+                          >
+                            <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">حيد</span>
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-4 md:px-8 py-5 whitespace-nowrap align-middle text-xs md:text-sm font-medium">
+                        {!product.is_offered ? (
+                          <button
+                            onClick={() => navigate(`/admin/products/${product.id}/offer`)}
+                            className="text-green-600 hover:text-green-900 transition-colors duration-200 flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-green-100"
+                          >
+                            <Tag className="h-4 w-4" /> <span className="hidden sm:inline">زيد برومو</span>
+                          </button>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => navigate(`/admin/products/${product.id}/offer`)}
+                              className="text-yellow-600 hover:text-yellow-900 transition-colors duration-200 flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-yellow-100"
+                            >
+                              <Tag className="h-4 w-4" /> <span className="hidden sm:inline">بدل البرومو</span>
+                            </button>
+                            <button
+                              onClick={() => navigate(`/admin/products/${product.id}/offer?delete=1`)}
+                              className="text-red-600 hover:text-red-900 transition-colors duration-200 flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-red-200"
+                            >
+                              <Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">حيد البرومو</span>
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                    {/* Mobile card row */}
+                    <tr className="md:hidden">
+                      <td colSpan={8} className="p-0 border-0">
+                        <div className="bg-white rounded-lg shadow mb-4 p-4 flex flex-col gap-2">
+                          <div className="flex items-center gap-3">
+                            <img src={product.product_img} alt={product.product_name} className="h-12 w-12 rounded-lg object-cover" />
+                            <div>
+                              <div className="font-bold">{product.product_name}</div>
+                              <div className="text-xs text-gray-500">{product.sizes.length > 0 && `القياسات: ${product.sizes.join(', ')}`}</div>
+                            </div>
+                          </div>
+                          <div><span className="font-bold">الكاطيݣوري:</span> {getCategoryName(product.categorie_id)}</div>
+                          <div>
+                            <span className="font-bold">الثمن:</span>{' '}
+                            {product.is_offered ? (
+                              <>
+                                <span className="text-red-600 font-bold">{product.offered_price} د.م</span>
+                                <span className="text-gray-400 line-through ml-2">{product.price} د.م</span>
+                              </>
+                            ) : (
+                              <span>{product.price} د.م</span>
+                            )}
+                          </div>
+                          <div><span className="font-bold">الستوك:</span> {product.quantity}</div>
+                          <div className="flex gap-2 flex-wrap mt-2">
+                            <button onClick={() => navigate(`/admin/products/edit/${product.id}`)} className="flex-1 flex items-center justify-center gap-1 bg-blue-100 text-blue-700 rounded-lg py-2 px-2 text-sm font-medium"><Edit2 className="h-4 w-4" /> بدل</button>
+                            <button onClick={() => handleDeleteClick(product.id)} className="flex-1 flex items-center justify-center gap-1 bg-red-100 text-red-700 rounded-lg py-2 px-2 text-sm font-medium"><Trash2 className="h-4 w-4" /> حيد</button>
+                            <button
+                              onClick={() => handleToggleShow(product)}
+                              className={`flex-1 flex items-center justify-center gap-1 ${product.isShow ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'} rounded-lg py-2 px-2 text-sm font-medium`}
+                              disabled={toggleProductId === product.id}
+                              title={product.isShow ? 'إخفاء' : 'إظهار'}
+                            >
+                              {product.isShow ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />} {product.isShow ? 'إخفاء' : 'إظهار'}
+                            </button>
+                            {!product.is_offered ? (
+                              <button onClick={() => navigate(`/admin/products/${product.id}/offer`)} className="flex-1 flex items-center justify-center gap-1 bg-green-100 text-green-700 rounded-lg py-2 px-2 text-sm font-medium"><Tag className="h-4 w-4" /> زيد برومو</button>
+                            ) : (
+                              <>
+                                <button onClick={() => navigate(`/admin/products/${product.id}/offer`)} className="flex-1 flex items-center justify-center gap-1 bg-yellow-100 text-yellow-700 rounded-lg py-2 px-2 text-sm font-medium"><Tag className="h-4 w-4" /> بدل البرومو</button>
+                                <button onClick={() => navigate(`/admin/products/${product.id}/offer?delete=1`)} className="flex-1 flex items-center justify-center gap-1 bg-red-200 text-red-800 rounded-lg py-2 px-2 text-sm font-medium"><Trash2 className="h-4 w-4" /> حيد البرومو</button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                ))
+              )}
             </tbody>
           </table>
+          {/* Mobile: show message if no products */}
+          {filteredProducts.length === 0 && (
+            <div className="md:hidden text-center py-12 text-gray-400 text-lg font-bold">ما كاين حتى برودوي</div>
+          )}
         </div>
       </div>
+
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4 text-center">بغيت بصح تحيد هاد البرودوي؟</h3>
+            <div className="flex gap-3">
+              <button onClick={handleDeleteConfirm} disabled={isDeleting} className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">ايه، حيد</button>
+              <button onClick={() => setShowDeleteModal(false)} className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400">لا، رجع</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
