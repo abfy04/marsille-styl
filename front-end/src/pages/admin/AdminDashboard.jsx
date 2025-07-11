@@ -1,15 +1,18 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Package, Tag, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const products = useSelector((state) => state.products.products);
   const categories = useSelector((state) => state.categories.categories);
 
   const totalProducts = products.length;
   const totalCategories = categories.length;
-  const offeredProducts = products.filter(product => product.is_offered).length;
-  const lowStockProducts = products.filter(product => product.quantity < 10).length;
+  const offeredProducts = products.filter(product => product.isOffred || product.is_offered).length;
+  const lowStockProducts = products.filter(product => (product.stock ?? product.quantity) < 10).length;
+  const totalStock = products.reduce((sum, product) => sum + (product.stock ?? product.quantity ?? 0), 0);
 
   const stats = [
     {
@@ -17,27 +20,34 @@ const AdminDashboard = () => {
       value: totalProducts,
       icon: Package,
       color: 'bg-blue-500',
-      change: '+12%',
+      change: '',
     },
     {
       title: 'عدد الكاطيݣوريات',
       value: totalCategories,
       icon: Tag,
       color: 'bg-green-500',
-      change: '+5%',
+      change: '',
     },
     {
       title: 'إجمالي الستوك',
-      value: products.reduce((sum, product) => sum + product.quantity, 0),
+      value: totalStock,
       icon: ShoppingCart,
       color: 'bg-purple-500',
-      change: '+8%',
+      change: '',
     },
     {
       title: 'عدد البرودويات لي فيهم برومو',
       value: offeredProducts,
       icon: Tag,
       color: 'bg-yellow-400',
+      change: '',
+    },
+    {
+      title: 'برودويات الستوك ناقص',
+      value: lowStockProducts,
+      icon: ShoppingCart,
+      color: 'bg-red-500',
       change: '',
     },
   ];
@@ -74,19 +84,26 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">إجراءات سريعة</h3>
           <div className="space-y-3">
-            <button className="w-full bg-blue-50 text-blue-700 py-3 px-4 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-right">
+            <button
+              className="w-full bg-blue-50 text-blue-700 py-3 px-4 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-right"
+              onClick={() => navigate('/admin/products/add')}
+            >
               زيد برودوي
             </button>
-            <button className="w-full bg-green-50 text-green-700 py-3 px-4 rounded-lg hover:bg-green-100 transition-colors duration-200 text-right">
+            <button
+              className="w-full bg-green-50 text-green-700 py-3 px-4 rounded-lg hover:bg-green-100 transition-colors duration-200 text-right"
+              onClick={() => navigate('/admin/categories/add')}
+            >
               زيد كاطيݣوري
             </button>
-            <button className="w-full bg-purple-50 text-purple-700 py-3 px-4 rounded-lg hover:bg-purple-100 transition-colors duration-200 text-right">
+            <button
+              className="w-full bg-purple-50 text-purple-700 py-3 px-4 rounded-lg hover:bg-purple-100 transition-colors duration-200 text-right"
+              onClick={() => navigate('/admin/products')}
+            >
               زيد برومو
             </button>
           </div>
         </div>
-
-
       </div>
     </div>
   );

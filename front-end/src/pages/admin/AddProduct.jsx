@@ -113,7 +113,7 @@ const AddProduct = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow mt-8">
       <h2 className="text-xl font-bold mb-4">زيد برودوي جديد</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" encType='multipart/formdata'>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">اسم البرودوي</label>
